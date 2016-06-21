@@ -6,7 +6,6 @@ autoprefixer = require('gulp-autoprefixer'),
   browserSync = require("browser-sync").create(),
   concat = require("gulp-concat"),
   del = require('del'),
-  jade = require('gulp-jade'),
   jshint = require("gulp-jshint"),
   plumber = require("gulp-plumber"),
   rename = require("gulp-rename"),
@@ -18,18 +17,17 @@ var dev = "src/",
   devFonts = dev + "fonts/*",
   devImages = dev + "img/**/*",
   devJs = dev + "js/*.js",
-  devJsVendor = dev + "js/vendor/*.js",
   devStyle = dev + "scss/**/*.scss",
   devTemplates = dev + "templates/**/*.html",
   dist = "dist/",
   distFonts = dist + "fonts/",
   distImages = dist + "img/",
   distJs = dist + "js/",
-  distStyle = dist + "css/";
-  distTemplates = dist,
+  distStyle = dist + "css/",
+  distTemplates = dist;
 
 // Browser-sync server
-gulp.task("serve", ["deleteDist", "fonts", "images", "sass", "js", "templates", "vendor"], function() {
+gulp.task("serve", ["deleteDist", "fonts", "images", "sass", "js", "templates"], function() {
 
   browserSync.init({
     server: dist,
@@ -40,7 +38,6 @@ gulp.task("serve", ["deleteDist", "fonts", "images", "sass", "js", "templates", 
   gulp.watch(devFonts, ["fonts"]);
   gulp.watch(devImages, ["images"]);
   gulp.watch(devJs, ["js"]);
-  gulp.watch(devJsVendor, ["vendor"]);
   gulp.watch(devStyle, ["sass"]);
   gulp.watch(devTemplates, ["templates"]);
 
@@ -99,16 +96,6 @@ gulp.task("sass", function() {
 gulp.task("js", function() {
   return gulp.src(devJs)
     .pipe(concat("scripts.js"))
-    // .pipe(uglify()
-    //     .pipe(plumber())
-    .pipe(gulp.dest(distJs))
-    .pipe(browserSync.stream());
-});
-
-// Concatenate & Minify vendor JS
-gulp.task("vendor", function() {
-  return gulp.src(devJsVendor)
-    .pipe(concat("vendor.js"))
     // .pipe(uglify()
     //     .pipe(plumber())
     .pipe(gulp.dest(distJs))

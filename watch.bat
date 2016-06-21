@@ -1,1 +1,0 @@
-start cmd /k "cd E:\Documents\WIP\tp && gulp"
