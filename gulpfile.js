@@ -1,113 +1,118 @@
 // Include gulp
-var gulp = require("gulp");
+gulp = require("gulp");
 
 // Include plugins
-var browserSync = require("browser-sync").create();
-var concat = require("gulp-concat");
-var del = require('del');
-var jshint = require("gulp-jshint");
-var rename = require("gulp-rename");
-var sass = require("gulp-sass");
-var uglify = require("gulp-uglify");
+autoprefixer = require('gulp-autoprefixer'),
+  browserSync = require("browser-sync").create(),
+  concat = require("gulp-concat"),
+  del = require('del'),
+  jade = require('gulp-jade'),
+  jshint = require("gulp-jshint"),
+  plumber = require("gulp-plumber"),
+  rename = require("gulp-rename"),
+  sass = require("gulp-sass"),
+  uglify = require("gulp-uglify");
 
 // Folders
-var dev = "dev/";
-var devFonts = dev + "fonts/*";
-var devHTML = dev + "*.html";
-var devImages = dev + "img/**";
-var devScripts = dev + "js/*";
-var devStyle = dev + "scss/*";
-var devDirectives = dev + "directives/*";
-var dist = "dist/";
-var distFonts = dist + "fonts/";
-var distHTML = dist;
-var distImages = dist + "img/";
-var distScripts = dist + "js/";
-var distStyle = dist + "css/";
-var distDirectives = dist + "directives/";
+var dev = "src/",
+  devFonts = dev + "fonts/*",
+  devImages = dev + "img/**/*",
+  devJs = dev + "js/*.js",
+  devJsVendor = dev + "js/vendor/*.js",
+  devStyle = dev + "scss/**/*.scss",
+  devTemplates = dev + "templates/**/*.html",
+  dist = "dist/",
+  distFonts = dist + "fonts/",
+  distImages = dist + "img/",
+  distJs = dist + "js/",
+  distStyle = dist + "css/";
+  distTemplates = dist,
 
 // Browser-sync server
-gulp.task("serve", ["deleteDist", "directives", "fonts", "html", "images", "sass", "scripts"], function() {
-    // gulp.task("serve", ["fonts", "html", "images", "lint", "sass", "scripts"], function() {
+gulp.task("serve", ["deleteDist", "fonts", "images", "sass", "js", "templates", "vendor"], function() {
 
-    browserSync.init({
-        server: dist
-    });
+  browserSync.init({
+    server: dist,
+    startPath: "/homepage.html",
+    open: false
+  });
 
-    gulp.watch(devDirectives, ["directives"]);
-    gulp.watch(devFonts, ["fonts"]);
-    gulp.watch(devHTML, ["html"]);
-    gulp.watch(devImages, ["images"]);
-    gulp.watch(devScripts, ["scripts"]);
-    // gulp.watch(devScripts, ["lint", "scripts"]);
-    gulp.watch(devStyle, ["sass"]);
+  gulp.watch(devFonts, ["fonts"]);
+  gulp.watch(devImages, ["images"]);
+  gulp.watch(devJs, ["js"]);
+  gulp.watch(devJsVendor, ["vendor"]);
+  gulp.watch(devStyle, ["sass"]);
+  gulp.watch(devTemplates, ["templates"]);
 
 });
-
-function handleError(err) {
-    console.log(err.toString());
-    this.emit('end');
-}
 
 // Delete dist
 gulp.task('deleteDist', function() {
-    return del.sync(dist);
+  return del.sync(dist);
 })
-
-// Copy directives
-gulp.task("directives", function() {
-    return gulp.src(devDirectives)
-        .pipe(gulp.dest(distDirectives))
-        .pipe(browserSync.stream());
-});
 
 // Copy fonts
 gulp.task("fonts", function() {
-    return gulp.src(devFonts)
-        .pipe(gulp.dest(distFonts))
-        .pipe(browserSync.stream());
+  return gulp.src(devFonts)
+    .pipe(gulp.dest(distFonts))
+    .pipe(browserSync.stream());
 });
 
-// Copy HTML
-gulp.task("html", function() {
-    return gulp.src(devHTML)
-        .pipe(gulp.dest(distHTML))
-        .pipe(browserSync.stream());
+// Create template
+gulp.task('templates', function() {
+  return gulp.src(devTemplates)
+    .pipe(gulp.dest(distTemplates))
+    .pipe(browserSync.stream());
 });
 
 // Copy HTML
 gulp.task("images", function() {
-    return gulp.src(devImages)
-        .pipe(gulp.dest(distImages))
-        .pipe(browserSync.stream());
+  return gulp.src(devImages)
+    .pipe(gulp.dest(distImages))
+    .pipe(browserSync.stream());
 });
 
 // Lint Task
 gulp.task("lint", function() {
-    return gulp.src(devScripts)
-        .pipe(jshint())
-        .pipe(jshint.reporter("default"));
+  return gulp.src(devJs)
+    .pipe(jshint())
+    .pipe(jshint.reporter("default"));
 });
 
 // Compile sass
 gulp.task("sass", function() {
-    return gulp.src(devStyle)
-        .pipe(sass({
-                outputStyle: 'compressed'
-            })
-            .on("error", handleError))
-        .pipe(gulp.dest(distStyle))
-        .pipe(browserSync.stream());
+  return gulp.src(devStyle)
+    .pipe(sass({
+      outputStyle: 'compressed'
+    }))
+    .pipe(plumber())
+    .pipe(autoprefixer({
+      browsers: ['last 2 versions', 'last 3 iOS versions'],
+      cascade: false,
+      flexbox: true,
+    }))
+    .pipe(gulp.dest(distStyle))
+    .pipe(browserSync.stream());
 });
 
 // Concatenate & Minify JS
-gulp.task("scripts", function() {
-    return gulp.src(devScripts)
-        // .pipe(concat("app.js"))
-        // .pipe(uglify()
-        //     .on("error", handleError))
-        .pipe(gulp.dest(distScripts))
-        .pipe(browserSync.stream());
+gulp.task("js", function() {
+  return gulp.src(devJs)
+    .pipe(concat("scripts.js"))
+    // .pipe(uglify()
+    //     .pipe(plumber())
+    .pipe(gulp.dest(distJs))
+    .pipe(browserSync.stream());
+});
+
+// Concatenate & Minify vendor JS
+gulp.task("vendor", function() {
+  return gulp.src(devJsVendor)
+    .pipe(concat("vendor.js"))
+    // .pipe(uglify()
+    //     .pipe(plumber())
+    .pipe(gulp.dest(distJs))
+    .pipe(browserSync.stream());
 });
 
 // Default Task
